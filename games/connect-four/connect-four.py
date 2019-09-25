@@ -40,11 +40,13 @@ class ConnectFourSimulator:
 		return self.board, (self.current_player, 0), (inactive_player, 0)
 
 	def __play_move(self, action):
+		"""Takes an action and executes it."""
 		x, y = self.__coordinates_from_action(action)
 		self.board[y][x] = self.current_player
 		self.current_player = self.__negated_player(self.current_player)
 
 	def __action_is_valid(self, action):
+		"""Checks if the intended action is a valid one or if it breaks the rules of the game."""
 		pass
 
 	def __game_is_over(self):
