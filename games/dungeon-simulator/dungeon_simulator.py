@@ -1,6 +1,7 @@
-from enums import *
 import random
 
+FORWARD = 0
+BACKWARD = 1
 
 class DungeonSimulator:
 	def __init__(self, length=5, slip=0.1, small=2, large=10):
@@ -15,7 +16,7 @@ class DungeonSimulator:
 		''' Executes the action and returns the next state and the received reward.'''
 		if random.random() < self.slip:
 			action = not action
-
+		reward = 0
 		if action == BACKWARD:
 			reward = self.small
 			self.state = 0
