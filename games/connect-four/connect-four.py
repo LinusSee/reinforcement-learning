@@ -1,3 +1,5 @@
+import numpy as np
+
 class ConnectFourSimulator:
 	"""Creates a connect-4 board and simulates it, returning states and rewards for any taken action.
 
@@ -26,7 +28,9 @@ class ConnectFourSimulator:
 		if not self.__is_action_valid(action):
 			return self.board, (self.current_player, -2), (inactive_player, 0)
 
-		if self.__game_is_over():
+		self.__play_move(action)
+
+		if self.__game_is_over(action):
 			winner = self.__winner()
 			if winner == self.DRAW:
 				return self.board, (self.current_player, 0), (inactive_player, 0)
@@ -35,9 +39,10 @@ class ConnectFourSimulator:
 			else:
 				return self.board, (self.current_player, -10), (inactive_player, 0)
 
-		self.__play_move(action)
-
 		return self.board, (self.current_player, 0), (inactive_player, 0)
+
+	def print_board(self):
+		print(self.board)
 
 	def __play_move(self, action):
 		"""Takes an action and executes it."""
@@ -47,15 +52,72 @@ class ConnectFourSimulator:
 
 	def __action_is_valid(self, action):
 		"""Checks if the intended action is a valid one or if it breaks the rules of the game."""
-		pass
+		if action < 0:
+			return False
+		x, y = self.__coordinates_from_action(action)
+		if x >= self.width or y >= self.height:
+			return False
 
-	def __game_is_over(self):
+		height_x = self.__column_height(x)
+
+		if y < height_x:
+			return False
+		return True
+
+	def __column_height(self, x):
+		"""Returns the height of a column which is equal to the amount of tokens placed."""
+		column = self.board[:, x]
+		return np.count_nonzero(column)
+
+	def __game_is_over(self, last_action):
 		"""Returns True if the game is over and False otherwise."""
-		pass
+		if np.count_nonzero(self.board) == 0:
+			return True
 
-	def __winner(self):
-		"""Returns the winner's number or 0 if the game resulted in a draw."""
-		pass
+		lines = self.__extract_lines(last_action)
+
+		for line in lines:
+			if self.__winner_in_line(line) != 0:
+				return True
+
+		return False
+
+	def __extract_lines(self, last_action):
+		"""Extracts the horizontal, vertical and the diagonal lines going through the last action"""
+		x, y = self.__coordinates_from_action(last_action)
+
+		row = self.board[y]
+		column = self.board[:, x]
+		top_down_diagonal = self.board.diagonal(x - y)
+
+		mirrored_x = self.width - 1 - x
+		bot_up_diagonal = np.fliplr(self.board).diagonal(mirrored_x - y)
+
+		return row, column, top_down_diagonal, bot_up_diagonal
+
+	def __winner(self, last_action):
+		"""Returns the winner's number or 0 if the game resulted in a draw (Requires the game to have ended)."""
+		lines = self.__extract_lines(last_action)
+
+		for line in lines:
+			winner = self.__winner_in_line(line)
+			if winner != 0:
+				return winner
+
+		return 0
+
+	def __winner_in_line(self, line):
+		"""Checks if a line contains a winner and returns his number if yes and 0 otherwise."""
+		token_sum = 0
+		for token in line:
+			token_sum += token
+			if token_sum == 4 * self.PLAYER1:
+				return self.PLAYER1
+			if token_sum == 4 * self.PLAYER2:
+				return self.PLAYER2
+			if token_sum < 0 < token or token_sum > 0 > token:
+				token_sum = 0
+		return 0
 
 	def __coordinates_from_action(self, action):
 		"""Translates an action into (x, y) / (column, row) coordinates."""
