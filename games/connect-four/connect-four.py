@@ -35,9 +35,9 @@ class ConnectFourSimulator:
 			if winner == self.DRAW:
 				return self.board, (self.current_player, 0), (inactive_player, 0)
 			elif winner == self.PLAYER1:
-				return self.board, (self.current_player, 10), (inactive_player, 0)
+				return self.board, (self.current_player, 10), (inactive_player, -10)
 			else:
-				return self.board, (self.current_player, -10), (inactive_player, 0)
+				return self.board, (self.current_player, -10), (inactive_player, 10)
 
 		return self.board, (self.current_player, 0), (inactive_player, 0)
 
