@@ -21,25 +21,27 @@ class ConnectFourSimulator:
 		self.PLAYER2 = -1
 		self.DRAW = 0
 		self.current_player = self.PLAYER1
+		self.__game_over = False
 
 	def take_action(self, action):
 		"""Executes the action and returns the next state and the received reward."""
 		inactive_player = self.__negated_player(self.current_player)
-		if not self.__is_action_valid(action):
-			return self.board, (self.current_player, -2), (inactive_player, 0)
+		if not self.__action_is_valid(action):
+			return self.__game_over, self.board, (self.current_player, -2), (inactive_player, 0)
 
 		self.__play_move(action)
 
-		if self.__game_is_over(action):
-			winner = self.__winner()
+		self.__game_over = self.__game_is_over(action)
+		if self.__game_over:
+			winner = self.__winner(action)
 			if winner == self.DRAW:
-				return self.board, (self.current_player, 0), (inactive_player, 0)
+				return self.__game_over, self.board, (self.current_player, 0), (inactive_player, 0)
 			elif winner == self.PLAYER1:
-				return self.board, (self.current_player, 10), (inactive_player, -10)
+				return self.__game_over, self.board, (self.current_player, 10), (inactive_player, -10)
 			else:
-				return self.board, (self.current_player, -10), (inactive_player, 10)
+				return self.__game_over, self.board, (self.current_player, -10), (inactive_player, 10)
 
-		return self.board, (self.current_player, 0), (inactive_player, 0)
+		return self.__game_over, self.board, (self.current_player, 0), (inactive_player, 0)
 
 	def print_board(self):
 		print(self.board)
