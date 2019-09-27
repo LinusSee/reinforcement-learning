@@ -63,7 +63,7 @@ class ConnectFourSimulator:
 
 		height_x = self.__column_height(x)
 
-		if y < height_x:
+		if y != height_x:
 			return False
 		return True
 
