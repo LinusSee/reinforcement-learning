@@ -21,7 +21,7 @@ class ConnectFourSimulator:
 		self.PLAYER2 = -1
 		self.DRAW = 0
 		self.current_player = self.PLAYER1
-		self.valid_actions = np.range(self.width)
+		self.valid_actions = list(range(self.width))
 		self.__game_over = False
 
 	def take_action(self, action):
