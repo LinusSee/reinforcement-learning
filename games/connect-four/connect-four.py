@@ -21,6 +21,7 @@ class ConnectFourSimulator:
 		self.PLAYER2 = -1
 		self.DRAW = 0
 		self.current_player = self.PLAYER1
+		self.valid_actions = np.range(self.width)
 		self.__game_over = False
 
 	def take_action(self, action):
@@ -38,14 +39,17 @@ class ConnectFourSimulator:
 			if winner == self.DRAW:
 				return self.__game_over, self.board, active_player, 0, inactive_player, 0
 			elif winner == self.PLAYER1:
-				return self.__game_over, self.board, active_player, 10, inactive_player, -10
+				return self.__game_over, self.board, active_player, 1, inactive_player, -1
 			else:
-				return self.__game_over, self.board, active_player, -10, inactive_player, 10
+				return self.__game_over, self.board, active_player, -1, inactive_player, 1
 
 		return self.__game_over, self.board, active_player, 0, inactive_player, 0
 
 	def print_board(self):
-		print(self.board)
+		board = self.board
+		board = np.where(board == 1, "X", board)
+		board = np.where(board == "-1.0", "O", board)
+		print(np.where(board == "0.0", "-", board))
 
 	def __play_move(self, action):
 		"""Takes an action and executes it."""
@@ -55,17 +59,24 @@ class ConnectFourSimulator:
 
 	def __action_is_valid(self, action):
 		"""Checks if the intended action is a valid one or if it breaks the rules of the game."""
-		if action < 0:
-			return False
-		x, y = self.__coordinates_from_action(action)
-		if x >= self.width or y >= self.height:
-			return False
+		# if 41 > action < 0:
+		# 	return False
+		# x, y = self.__coordinates_from_action(action)
+		# if x >= self.width or y >= self.height:
+		# 	return False
+		#
+		# height_x = self.__column_height(x)
+		#
+		# if y != height_x:
+		# 	return False
+		# return True
+		is_valid = action in self.valid_actions
 
-		height_x = self.__column_height(x)
+		next_valid_action = action + self.width
+		if next_valid_action < self.width * self.height:
+			self.valid_actions.append(next_valid_action)
 
-		if y != height_x:
-			return False
-		return True
+		return is_valid
 
 	def __column_height(self, x):
 		"""Returns the height of a column which is equal to the amount of tokens placed."""
@@ -74,7 +85,7 @@ class ConnectFourSimulator:
 
 	def __game_is_over(self, last_action):
 		"""Returns True if the game is over and False otherwise."""
-		if np.count_nonzero(self.board) == 0:
+		if np.count_nonzero(self.board) >= 42:
 			return True
 
 		lines = self.__extract_lines(last_action)
