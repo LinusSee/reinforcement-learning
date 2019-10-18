@@ -26,24 +26,22 @@ class ConnectFourSimulator:
 
 	def take_action(self, action):
 		"""Executes the action and returns the next state and the received reward."""
-		active_player = self.current_player
-		inactive_player = self.__negated_player(active_player)
+		assert not self.__game_over, "Game is already finished."
+
 		if not self.__action_is_valid(action):
-			return self.__game_over, self.board, active_player, -2, inactive_player, 0
+			return self.__game_over, self.board, (-2, 0)
 
-		self.__play_move(action)
+		x, y = self.__coordinates_from_action(action)
+		self.__play_move(x, y)
 
-		self.__game_over = self.__game_is_over(action)
+		self.__game_over = self.__game_is_over(x, y)
 		if self.__game_over:
-			winner = self.__winner(action)
+			winner = self.__winner(x, y)
 			if winner == self.DRAW:
-				return self.__game_over, self.board, active_player, 0, inactive_player, 0
-			elif winner == self.PLAYER1:
-				return self.__game_over, self.board, active_player, 1, inactive_player, -1
-			else:
-				return self.__game_over, self.board, active_player, -1, inactive_player, 1
+				return self.__game_over, self.board, (0, 0)
+			return self.__game_over, self.board, (1, -1)
 
-		return self.__game_over, self.board, active_player, 0, inactive_player, 0
+		return self.__game_over, self.board, (0, 0)
 
 	def print_board(self):
 		board = self.board
@@ -51,31 +49,18 @@ class ConnectFourSimulator:
 		board = np.where(board == "-1.0", "O", board)
 		print(np.where(board == "0.0", "-", board))
 
-	def __play_move(self, action):
+	def __play_move(self, x, y):
 		"""Takes an action and executes it."""
-		x, y = self.__coordinates_from_action(action)
 		self.board[y][x] = self.current_player
 		self.current_player = self.__negated_player(self.current_player)
 
 	def __action_is_valid(self, action):
 		"""Checks if the intended action is a valid one or if it breaks the rules of the game."""
-		# if 41 > action < 0:
-		# 	return False
-		# x, y = self.__coordinates_from_action(action)
-		# if x >= self.width or y >= self.height:
-		# 	return False
-		#
-		# height_x = self.__column_height(x)
-		#
-		# if y != height_x:
-		# 	return False
-		# return True
 		is_valid = action in self.valid_actions
 
-		next_valid_action = action + self.width
-		if next_valid_action < self.width * self.height:
-			self.valid_actions.append(next_valid_action)
-
+		if is_valid:
+			if self.__column_height(action) >= (self.height - 1):
+				self.valid_actions.remove(action)
 		return is_valid
 
 	def __column_height(self, x):
@@ -83,12 +68,12 @@ class ConnectFourSimulator:
 		column = self.board[:, x]
 		return np.count_nonzero(column)
 
-	def __game_is_over(self, last_action):
+	def __game_is_over(self, x, y):
 		"""Returns True if the game is over and False otherwise."""
 		if np.count_nonzero(self.board) >= 42:
 			return True
 
-		lines = self.__extract_lines(last_action)
+		lines = self.__extract_lines(x, y)
 
 		for line in lines:
 			if self.__winner_in_line(line) != 0:
@@ -96,10 +81,8 @@ class ConnectFourSimulator:
 
 		return False
 
-	def __extract_lines(self, last_action):
+	def __extract_lines(self, x, y):
 		"""Extracts the horizontal, vertical and the diagonal lines going through the last action"""
-		x, y = self.__coordinates_from_action(last_action)
-
 		row = self.board[y]
 		column = self.board[:, x]
 		top_down_diagonal = self.board.diagonal(x - y)
@@ -109,9 +92,9 @@ class ConnectFourSimulator:
 
 		return row, column, top_down_diagonal, bot_up_diagonal
 
-	def __winner(self, last_action):
+	def __winner(self, x, y):
 		"""Returns the winner's number or 0 if the game resulted in a draw (Requires the game to have ended)."""
-		lines = self.__extract_lines(last_action)
+		lines = self.__extract_lines(x, y)
 
 		for line in lines:
 			winner = self.__winner_in_line(line)
@@ -135,9 +118,7 @@ class ConnectFourSimulator:
 
 	def __coordinates_from_action(self, action):
 		"""Translates an action into (x, y) / (column, row) coordinates."""
-		x = action % self.width
-		y = action // self.width
-		return x, y
+		return action, self.__column_height(action)
 
 	def __negated_player(self, player):
 		"""Returns the player not passed to the function (Player1 if Player2 is passed and the other way around)."""
